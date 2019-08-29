@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -18,7 +19,7 @@ public class PlayerShooting : MonoBehaviour
 	public	Light gunLight;                                 // Reference to the light component.
 	float effectsDisplayTime = 0.2f;                // The proportion of the timeBetweenBullets that the effects will display for.
 	public Animator gunAnimator;
-
+	public GameObject bullet_spawn;
 	void Awake()
 	{
 		// Create a layer mask for the Shootable layer.
@@ -37,7 +38,11 @@ public class PlayerShooting : MonoBehaviour
 		if (Input.GetButton("Fire1") && timer >= timeBetweenBullets)
 		{
 			// ... shoot the gun.
+			StartCoroutine(ShootAnimation());
 			Shoot();
+		} else
+		{
+
 		}
 
 		// If the timer has exceeded the proportion of timeBetweenBullets that the effects should be displayed for...
@@ -45,7 +50,18 @@ public class PlayerShooting : MonoBehaviour
 		{
 			// ... disable the effects.
 			DisableEffects();
+
 		}
+	}
+
+	IEnumerator ShootAnimation()
+	{
+		gunAnimator.SetBool("shooting", true);
+
+
+		yield return new WaitForSeconds(1.0f);
+		gunAnimator.SetBool("shooting", false);
+
 	}
 
 	public void DisableEffects()
@@ -53,13 +69,11 @@ public class PlayerShooting : MonoBehaviour
 		// Disable the line renderer and the light.
 		gunLine.enabled = false;
 		gunLight.enabled = false;
-		gunAnimator.SetBool("shooting", false);
 		//gunParticles.Stop();
 	}
 
 	void Shoot()
 	{
-		gunAnimator.SetBool("shooting", true);
 		// Reset the timer.
 		timer = 0f;
 
@@ -75,12 +89,18 @@ public class PlayerShooting : MonoBehaviour
 		gunLine.enabled = true;
 
 		// Set the shootRay so that it starts at the end of the gun and points forward from the barrel.
-		shootRay.origin = transform.position;
-		shootRay.direction = transform.forward;
+		shootRay.origin = bullet_spawn.transform.position;
+		shootRay.direction = transform.position + transform.forward * 1000;
+		gunLine.SetPosition(0, bullet_spawn.transform.position);
+
+
+		Debug.DrawLine(transform.position, transform.position + transform.forward*10);
+
 
 		// Perform the raycast against gameobjects on the shootable layer and if it hits something...
 		if (Physics.Raycast(shootRay, out shootHit, range, shootableMask))
 		{
+
 			// Try and find an EnemyHealth script on the gameobject hit.
 			AController enemyHealth = shootHit.collider.GetComponent<AController>();
 

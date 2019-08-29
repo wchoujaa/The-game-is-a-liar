@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.AI;
+using UnityEngine.UIElements;
 
 public class AController : MonoBehaviour
 {
@@ -12,20 +13,22 @@ public class AController : MonoBehaviour
 	public AudioClip deathClip;              // The sound to play when the enemy dies.
 
 	Animator anim;                              // Reference to the animator.
-	AudioSource enemyAudio;              // Reference to the audio source.
-	ParticleSystem hitParticles;             // Reference to the particle system that plays when the enemy is damaged.
+	AudioSource hitAudio;              // Reference to the audio source.
+	public ParticleSystem hitParticles;             // Reference to the particle system that plays when the enemy is damaged.
 	CapsuleCollider capsuleCollider;     // Reference to the capsule collider.
 	bool isDead;                                  // Whether the enemy is dead.
 	bool isSinking;
+	public RectTransform HealthBar;
+	protected float healthBarWidth;
 
 	void Awake()
 	{
 		// Setting up the references.
-		anim = GetComponent<Animator>();
-		enemyAudio = GetComponent<AudioSource>();
+		//anim = GetComponent<Animator>();
+		hitAudio = GetComponent<AudioSource>();
 		hitParticles = GetComponentInChildren<ParticleSystem>();
 		capsuleCollider = GetComponent<CapsuleCollider>();
-
+		healthBarWidth = HealthBar.rect.width;
 		// Setting the current health when the enemy first spawns.
 		currentHealth = startingHealth;
 
@@ -44,7 +47,7 @@ public class AController : MonoBehaviour
 			return;
 
 		// Play the hurt sound effect.
-		enemyAudio.Play();
+		hitAudio.Play();
 
 		// Reduce the current health by the amount of damage sustained.
 		currentHealth -= amount;
@@ -55,6 +58,10 @@ public class AController : MonoBehaviour
 		// And play the particles.
 		hitParticles.Play();
 
+		var width = HealthBar.rect.width;
+
+		HealthBar.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, width * currentHealth / startingHealth);
+
 		// If the current health is less than or equal to zero...
 		if (currentHealth <= 0)
 		{
@@ -63,7 +70,7 @@ public class AController : MonoBehaviour
 		}
 	}
 
-	void Death()
+	public virtual void Death()
 	{
 		// The enemy is dead.
 		isDead = true;
@@ -72,11 +79,13 @@ public class AController : MonoBehaviour
 		capsuleCollider.isTrigger = true;
 
 		// Tell the animator that the enemy is dead.
-		anim.SetTrigger("Dead");
+		//anim.SetTrigger("Dead");
 
 		// Change the audio clip of the audio source to the death clip and play it (this will stop the hurt clip playing).
-		enemyAudio.clip = deathClip;
-		enemyAudio.Play();
+		hitAudio.clip = deathClip;
+		hitAudio.Play();
+
+		StartSinking();
 	}
 
 	public void StartSinking()
@@ -90,8 +99,5 @@ public class AController : MonoBehaviour
 		// The enemy should no sink.
 		isSinking = true;
 
-
-		// After 2 seconds destory the enemy.
-		Destroy(gameObject, 2f);
 	}
 }

@@ -5,6 +5,10 @@ TagManager:
   serializedVersion: 2
   tags:
   - Shootable
+  - PlayerTag
+  - Red
+  - Blue
+  - CheckPoint
   layers:
   - Default
   - TransparentFX
@@ -14,8 +18,8 @@ TagManager:
   - UI
   - 
   - 
-  - 
-  - 
+  - Shootable
+  - Collectable
   - 
   - 
   - 
